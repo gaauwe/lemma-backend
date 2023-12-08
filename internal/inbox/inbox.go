@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/gaauwe/lemma-backend/internal/config"
+	"github.com/gaauwe/lemma-backend/internal/database"
 	"github.com/gaauwe/lemma-backend/internal/notification"
 	"go.elara.ws/go-lemmy"
 	"go.elara.ws/go-lemmy/types"
@@ -48,14 +49,20 @@ func FetchReplies() {
 		}
 
 		if len(replies.Replies) > 0 {
-			author := replies.Replies[0].Creator.Name
-			post := replies.Replies[0].Post.Name
-			title = fmt.Sprintf("%s replied to your comment in %s", author, post)
-			body = replies.Replies[0].Comment.Content
+			reply := replies.Replies[0]
+
+			if database.IsAfterLastChecked(reply.Comment.Published) {
+				author := reply.Creator.Name
+				post := reply.Post.Name
+				title = fmt.Sprintf("%s replied to your comment in %s", author, post)
+				body = reply.Comment.Content
+			}
 		}
 	}
 
 	if len(title) > 0 && len(body) > 0 {
 		notification.SendNotification(title, body, count)
+	} else {
+		log.Printf("No new notifications...")
 	}
 }

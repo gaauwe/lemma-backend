@@ -11,7 +11,7 @@ import (
 
 var Client *apns2.Client
 
-func NewClient() error {
+func SetupClient() error {
 	authKey, err := token.AuthKeyFromFile("./AuthKey.p8")
 	if err != nil {
 		return err
