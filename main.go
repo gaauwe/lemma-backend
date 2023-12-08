@@ -30,7 +30,7 @@ func main() {
 		log.Fatal("Failed to setup database: ", err)
 	}
 
-	// Start checking notifications periodacially.
+	// Start checking notifications periodically.
 	s := gocron.NewScheduler(time.UTC)
 	_, _ = s.Every(5).Seconds().Do(func() { inbox.FetchReplies() })
 	s.StartBlocking()

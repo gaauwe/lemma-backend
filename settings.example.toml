@@ -4,6 +4,7 @@ team_id = ""
 
 [device]
 device_token = ""
+topic = "com.gaauwe.lemma"
 
 [lemmy]
 server = ""
