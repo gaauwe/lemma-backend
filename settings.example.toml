@@ -1,0 +1,11 @@
+[apn]
+key_id = ""
+team_id = ""
+
+[device]
+device_token = ""
+
+[lemmy]
+server = ""
+username = ""
+password = ""
