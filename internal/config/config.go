@@ -14,7 +14,7 @@ type Config struct {
 
 	Device struct {
 		DeviceToken string `toml:"device_token"`
-		Topic       string `toml:topic`
+		Topic       string `toml:"topic"`
 	} `toml:"device"`
 
 	Lemmy struct {
@@ -22,6 +22,10 @@ type Config struct {
 		Username string `toml:"username"`
 		Password string `toml:"password"`
 	} `toml:"lemmy"`
+
+	Server struct {
+		PollRate string `toml:"poll_rate"`
+	} `toml:"server"`
 }
 
 var config *Config

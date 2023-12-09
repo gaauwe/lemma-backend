@@ -27,8 +27,8 @@ func SetupClient() error {
 	return nil
 }
 
-func SendNotification(title string, body string, count int64) {
-	payload := payload.NewPayload().AlertTitle(title).AlertBody(body).MutableContent().Badge(int(count)).Custom("key", "val")
+func SendNotification(title string, body string, image string, count int64) {
+	payload := payload.NewPayload().AlertTitle(title).AlertBody(body).MutableContent().Badge(int(count)).Custom("image_url", image)
 
 	notification := &apns2.Notification{}
 	notification.DeviceToken = config.Get().Device.DeviceToken

@@ -10,3 +10,6 @@ topic = "com.gaauwe.lemma"
 server = ""
 username = ""
 password = ""
+
+[server]
+poll_rate = 5

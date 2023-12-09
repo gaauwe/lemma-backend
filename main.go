@@ -6,8 +6,8 @@ import (
 
 	"github.com/gaauwe/lemma-backend/internal/config"
 	"github.com/gaauwe/lemma-backend/internal/database"
-	"github.com/gaauwe/lemma-backend/internal/inbox"
 	"github.com/gaauwe/lemma-backend/internal/notification"
+	"github.com/gaauwe/lemma-backend/internal/user"
 	"github.com/go-co-op/gocron"
 )
 
@@ -32,6 +32,6 @@ func main() {
 
 	// Start checking notifications periodically.
 	s := gocron.NewScheduler(time.UTC)
-	_, _ = s.Every(5).Seconds().Do(func() { inbox.FetchReplies() })
+	_, _ = s.Every(config.Get().Server.PollRate).Seconds().Do(func() { user.CheckNotifications() })
 	s.StartBlocking()
 }
