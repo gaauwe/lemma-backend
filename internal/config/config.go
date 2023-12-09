@@ -24,7 +24,8 @@ type Config struct {
 	} `toml:"lemmy"`
 
 	Server struct {
-		PollRate string `toml:"poll_rate"`
+		PollRate int64  `toml:"poll_rate"`
+		Addr     string `toml:"addr"`
 	} `toml:"server"`
 }
 

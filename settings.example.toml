@@ -4,7 +4,7 @@ team_id = ""
 
 [device]
 device_token = ""
-topic = "com.gaauwe.lemma"
+topic = ""
 
 [lemmy]
 server = ""
@@ -13,3 +13,4 @@ password = ""
 
 [server]
 poll_rate = 5
+addr = ""

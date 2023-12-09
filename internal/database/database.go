@@ -6,18 +6,47 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger"
+	"github.com/ostafen/clover/v2"
 	"go.elara.ws/go-lemmy/types"
 )
 
-var db *badger.DB
+var dbOld *badger.DB
+var db *clover.DB
 
 func SetupClient() error {
-	database, err := badger.Open(badger.DefaultOptions("/tmp/badger"))
+	database, err := clover.Open("database")
 	if err != nil {
 		return err
 	}
 
 	db = database
+	collectionExists, err := db.HasCollection("users")
+	if err != nil {
+		return err
+	}
+
+	if !collectionExists {
+		log.Println("Creating new users collection...")
+		err := db.CreateCollection("users")
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func Get() *clover.DB {
+	return db
+}
+
+func SetupClientOld() error {
+	database, err := badger.Open(badger.DefaultOptions("/tmp/badger"))
+	if err != nil {
+		return err
+	}
+
+	dbOld = database
 
 	// Store last checked when initializing the database, so we can skip all previous notifications.
 	StoreLastChecked()
@@ -25,7 +54,7 @@ func SetupClient() error {
 }
 
 func StoreLastChecked() {
-	err := db.Update(func(txn *badger.Txn) error {
+	err := dbOld.Update(func(txn *badger.Txn) error {
 		err := txn.Set([]byte("last_checked"), []byte(strconv.FormatInt((time.Now().Unix()), 10)))
 		return err
 	})
@@ -36,7 +65,7 @@ func StoreLastChecked() {
 
 func IsAfterLastChecked(date types.LemmyTime) bool {
 	var lastChecked []byte
-	err := db.View(func(txn *badger.Txn) error {
+	err := dbOld.View(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte("last_checked"))
 		if err != nil {
 			log.Fatal("Failed to get last_checked from DB: ", err)
