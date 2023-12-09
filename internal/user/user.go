@@ -27,6 +27,6 @@ func CheckNotifications() {
 		log.Fatal("Error:", err)
 	}
 
-	inbox.FetchReplies(c, ctx)
+	inbox.FetchReplies(c, ctx, "gromdroid")
 	watcher.FetchPosts(c, ctx)
 }

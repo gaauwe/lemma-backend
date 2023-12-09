@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/BurntSushi/toml"
 )
@@ -24,8 +25,9 @@ type Config struct {
 	} `toml:"lemmy"`
 
 	Server struct {
-		PollRate int64  `toml:"poll_rate"`
-		Addr     string `toml:"addr"`
+		PollRate  int64  `toml:"poll_rate"`
+		Addr      string `toml:"addr"`
+		StartedAt time.Time
 	} `toml:"server"`
 }
 
@@ -36,6 +38,9 @@ func LoadConfig(filepath string) error {
 	if err != nil {
 		return fmt.Errorf("Could not decode settings file %s: %w", filepath, err)
 	}
+
+	// Store at what time the server is started, so we never send notifications for events that happened earlier.
+	config.Server.StartedAt = time.Now()
 
 	return nil
 }

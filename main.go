@@ -41,8 +41,12 @@ func main() {
 	pollRate := config.Get().Server.PollRate
 	if pollRate > 0 {
 		s := gocron.NewScheduler(time.UTC)
-		_, _ = s.Every(pollRate).Seconds().Do(func() { user.CheckNotifications() })
-		s.StartBlocking()
+		_, err = s.Every(int(pollRate)).Seconds().Do(func() { user.CheckNotifications() })
+		if err != nil {
+			log.Fatal("Failed to setup cron job: ", err)
+		}
+
+		s.StartAsync()
 	}
 
 	// Register API routes.

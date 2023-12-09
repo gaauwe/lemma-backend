@@ -1,7 +1,6 @@
 package api
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gaauwe/lemma-backend/internal/database"
@@ -9,20 +8,6 @@ import (
 	"github.com/ostafen/clover/v2/document"
 	"github.com/ostafen/clover/v2/query"
 )
-
-type UserRequest struct {
-	Username string `json:"username"`
-	Token    string `json:"token"`
-}
-
-type User struct {
-	UserRequest
-	ID string `json:"id"`
-}
-
-var users = []UserRequest{
-	{Username: "gromdroid", Token: "1"},
-}
 
 func GetUsers(ctx *gin.Context) {
 	db := database.Get()
@@ -35,9 +20,9 @@ func GetUsers(ctx *gin.Context) {
 	}
 
 	// Map all the documents to a user struct.
-	users := []*User{}
+	users := []*database.User{}
 	for _, doc := range docs {
-		user := &User{}
+		user := &database.User{}
 		doc.Unmarshal(user)
 		user.ID = doc.ObjectId()
 		users = append(users, user)
@@ -48,32 +33,16 @@ func GetUsers(ctx *gin.Context) {
 
 func GetUserByUsername(ctx *gin.Context) {
 	username := ctx.Param("username")
-	db := database.Get()
-
-	// Fetch user from the DB.
-	doc, err := db.FindFirst(query.NewQuery("users").Where(query.Field("Username").Eq(username)))
+	user, err := database.GetUserByUsername(username)
 	if err != nil {
-		log.Println(err)
-		ctx.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "User could not be retrieved"})
-		return
-	}
-
-	// Return 404 if no user is found.
-	if doc == nil {
 		ctx.IndentedJSON(http.StatusNotFound, gin.H{"message": "User not found"})
-		return
 	}
-
-	// Map document to user struct.
-	user := &User{}
-	doc.Unmarshal(user)
-	user.ID = doc.ObjectId()
 
 	ctx.IndentedJSON(http.StatusOK, user)
 }
 
 func PostUsers(ctx *gin.Context) {
-	var newUser User
+	var newUser database.User
 	if err := ctx.BindJSON(&newUser); err != nil {
 		return
 	}
