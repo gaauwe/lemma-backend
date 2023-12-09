@@ -53,6 +53,10 @@ func main() {
 	router := gin.Default()
 	router.POST("/users", api.PostUsers)
 
+	router.POST("/users/:username/watcher", api.AddWatcher)
+	router.PUT("/users/:username/watcher/:id", api.EditWatcher)
+	router.DELETE("/users/:username/watcher/:id", api.DeleteWatcher)
+
 	// TODO: Remove these API routes in production, or add authorization.
 	router.GET("/users", api.GetUsers)
 	router.GET("/users/:username", api.GetUserByUsername)

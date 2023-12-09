@@ -9,7 +9,7 @@ import (
 	"go.elara.ws/go-lemmy/types"
 )
 
-func FetchPosts(c *lemmy.Client, ctx context.Context) {
+func FetchPosts(c *lemmy.Client, ctx context.Context, username string) {
 	posts, err := c.Posts(ctx, types.GetPosts{
 		Auth:          types.NewOptional(c.Token),
 		CommunityName: types.NewOptional("lemma@lemmy.world"),

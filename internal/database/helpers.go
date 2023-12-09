@@ -8,15 +8,30 @@ import (
 )
 
 type Inbox struct {
+	Enabled     bool
 	LastChecked *time.Time
 }
 
+type WatcherFilter struct {
+	Title   string
+	Author  string
+	Upvotes int64
+	Link    string
+}
+
+type Watcher struct {
+	ID        string
+	Name      string
+	Community string
+	Filters   WatcherFilter
+}
+
 type User struct {
-	ID          string
 	Username    string
 	Token       string
 	DeviceToken string
 	Inbox       Inbox
+	Watchers    []Watcher
 }
 
 func GetUserByUsername(username string) (*User, error) {
@@ -31,7 +46,6 @@ func GetUserByUsername(username string) (*User, error) {
 	// Map document to user struct.
 	user := &User{}
 	doc.Unmarshal(user)
-	user.ID = doc.ObjectId()
 
 	return user, nil
 }
@@ -60,9 +74,103 @@ func GetUsers() ([]*User, error) {
 	for _, doc := range docs {
 		user := &User{}
 		doc.Unmarshal(user)
-		user.ID = doc.ObjectId()
 		users = append(users, user)
 	}
 
 	return users, nil
+}
+
+func AddWatcher(username string, watcher Watcher) error {
+	user, err := GetUserByUsername(username)
+	if err != nil {
+		return err
+	}
+
+	// Loop through all the current watchers to prepare the DB update.
+	watchers := []map[string]interface{}{}
+	for _, w := range user.Watchers {
+		// Prevent multiple watchers with the same name.
+		if watcher.Name == w.Name {
+			return errors.New("Watcher with that name already exists")
+		}
+
+		watchers = append(watchers, watcherToMap(w))
+	}
+
+	// Add new watcher to the list.
+	watchers = append(watchers, watcherToMap(watcher))
+
+	err = updateWatchers(username, watchers)
+	return err
+}
+
+func EditWatcher(username string, watcher Watcher) error {
+	user, err := GetUserByUsername(username)
+	if err != nil {
+		return err
+	}
+
+	// Loop through all the current watchers to prepare the DB update.
+	watchers := []map[string]interface{}{}
+	for _, w := range user.Watchers {
+		// Replace the watcher that we want to edit.
+		if watcher.ID == w.ID {
+			watchers = append(watchers, watcherToMap(watcher))
+		} else {
+			watchers = append(watchers, watcherToMap(w))
+		}
+	}
+
+	err = updateWatchers(username, watchers)
+	return err
+}
+
+func DeleteWatcher(username string, id string) error {
+	user, err := GetUserByUsername(username)
+	if err != nil {
+		return err
+	}
+
+	// Loop through all the current watchers to prepare the DB update.
+	watchers := []map[string]interface{}{}
+	for _, w := range user.Watchers {
+		// Filter out the watcher that we want to delete.
+		if id != w.ID {
+			watchers = append(watchers, watcherToMap(w))
+		}
+	}
+
+	err = updateWatchers(username, watchers)
+	return err
+}
+
+func updateWatchers(username string, watchers []map[string]interface{}) error {
+	db := Get()
+	data := make(map[string]interface{})
+	data["Watchers"] = watchers
+
+	err := db.Update(query.NewQuery("users").Where(query.Field("Username").Eq(username)), data)
+	return err
+}
+
+func watcherToMap(watcher Watcher) map[string]interface{} {
+	result := make(map[string]interface{})
+
+	result["ID"] = watcher.ID
+	result["Name"] = watcher.Name
+	result["Community"] = watcher.Community
+	result["Filters"] = watcherFilterToMap(watcher.Filters)
+
+	return result
+}
+
+func watcherFilterToMap(filter WatcherFilter) map[string]interface{} {
+	result := make(map[string]interface{})
+
+	result["Title"] = filter.Title
+	result["Author"] = filter.Author
+	result["Upvotes"] = filter.Upvotes
+	result["Link"] = filter.Link
+
+	return result
 }

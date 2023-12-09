@@ -28,6 +28,6 @@ func CheckNotifications() {
 		}
 
 		inbox.FetchReplies(c, ctx, user.Username)
-		watcher.FetchPosts(c, ctx)
+		watcher.FetchPosts(c, ctx, user.Username)
 	}
 }
