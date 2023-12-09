@@ -16,7 +16,7 @@ func FetchPosts(c *lemmy.Client, ctx context.Context) {
 		Sort:          types.NewOptional(types.SortTypeNew),
 	})
 	if err != nil {
-		log.Fatal("Error:", err)
+		log.Println("Failed to retrieve posts: ", err)
 	}
 
 	var title string

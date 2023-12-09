@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/gaauwe/lemma-backend/internal/config"
 	"github.com/gaauwe/lemma-backend/internal/database"
@@ -17,7 +18,14 @@ func FetchReplies(c *lemmy.Client, ctx context.Context, username string) {
 		Auth: c.Token,
 	})
 	if err != nil {
-		log.Fatal("Error:", err)
+		log.Println("Failed to retrieve unread count: ", err)
+
+		// If the token is for some reason not valid, we delete the user and notify them of the issue.
+		// TODO: Update user in the database, so that we only send this once.
+		if strings.Contains(err.Error(), "not_logged_in") {
+			notification.SendNotification("Something went wrong with fetching your notifications", "Please disable and re-enable your notifications in the Lemma settings", "", 1)
+		}
+		return
 	}
 
 	var title string
@@ -31,7 +39,7 @@ func FetchReplies(c *lemmy.Client, ctx context.Context, username string) {
 			UnreadOnly: types.NewOptional(true),
 		})
 		if err != nil {
-			log.Fatal("Error:", err)
+			log.Println("Failed to retrieve replies: ", err)
 		}
 
 		if len(replies.Replies) > 0 {

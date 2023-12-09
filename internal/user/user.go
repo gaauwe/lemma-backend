@@ -5,28 +5,29 @@ import (
 	"log"
 
 	"github.com/gaauwe/lemma-backend/internal/config"
+	"github.com/gaauwe/lemma-backend/internal/database"
 	"github.com/gaauwe/lemma-backend/internal/inbox"
 	"github.com/gaauwe/lemma-backend/internal/watcher"
 	"go.elara.ws/go-lemmy"
-	"go.elara.ws/go-lemmy/types"
 )
 
 func CheckNotifications() {
-	ctx := context.Background()
-
-	c, err := lemmy.New(config.Get().Lemmy.Server)
+	users, err := database.GetUsers()
 	if err != nil {
-		log.Fatal("Error:", err)
+		log.Fatal("Failed to get users: ", err)
 	}
 
-	err = c.ClientLogin(ctx, types.Login{
-		UsernameOrEmail: config.Get().Lemmy.Username,
-		Password:        config.Get().Lemmy.Password,
-	})
-	if err != nil {
-		log.Fatal("Error:", err)
-	}
+	for _, user := range users {
+		ctx := context.Background()
+		c, err := lemmy.New(config.Get().Lemmy.Server)
+		c.Token = user.Token
 
-	inbox.FetchReplies(c, ctx, "gromdroid")
-	watcher.FetchPosts(c, ctx)
+		if err != nil {
+			log.Println("Failed to initialize Lemmy client: ", err)
+			return
+		}
+
+		inbox.FetchReplies(c, ctx, user.Username)
+		watcher.FetchPosts(c, ctx)
+	}
 }

@@ -10,22 +10,9 @@ import (
 )
 
 func GetUsers(ctx *gin.Context) {
-	db := database.Get()
-
-	// Fetch all users from the DB.
-	docs, err := db.FindAll(query.NewQuery("users"))
+	users, err := database.GetUsers()
 	if err != nil {
-		ctx.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "User could not be retrieved"})
-		return
-	}
-
-	// Map all the documents to a user struct.
-	users := []*database.User{}
-	for _, doc := range docs {
-		user := &database.User{}
-		doc.Unmarshal(user)
-		user.ID = doc.ObjectId()
-		users = append(users, user)
+		ctx.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 	}
 
 	ctx.IndentedJSON(http.StatusOK, users)
@@ -35,7 +22,7 @@ func GetUserByUsername(ctx *gin.Context) {
 	username := ctx.Param("username")
 	user, err := database.GetUserByUsername(username)
 	if err != nil {
-		ctx.IndentedJSON(http.StatusNotFound, gin.H{"message": "User not found"})
+		ctx.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 	}
 
 	ctx.IndentedJSON(http.StatusOK, user)

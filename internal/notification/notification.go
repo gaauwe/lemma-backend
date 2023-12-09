@@ -36,14 +36,13 @@ func SendNotification(title string, body string, image string, count int64) {
 	notification.Payload = payload
 
 	res, err := Client.Push(notification)
-
 	if err != nil {
-		log.Fatal("Error: ", err)
+		log.Println("Failed to send notification: ", err)
 	}
 
 	if res.Sent() {
-		log.Println("Sent: ", res.ApnsID)
+		log.Println("Notification Sent: ", res.ApnsID)
 	} else {
-		log.Println("Not Sent: ", res.StatusCode, res.ApnsID, res.Reason)
+		log.Println("Notification Not Sent: ", res.StatusCode, res.ApnsID, res.Reason)
 	}
 }
