@@ -51,7 +51,7 @@ func GetUserByUsername(ctx *gin.Context) {
 	db := database.Get()
 
 	// Fetch user from the DB.
-	doc, err := db.FindFirst(query.NewQuery("users").Where(query.Field("username").Eq(username)))
+	doc, err := db.FindFirst(query.NewQuery("users").Where(query.Field("Username").Eq(username)))
 	if err != nil {
 		log.Println(err)
 		ctx.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "User could not be retrieved"})
@@ -78,13 +78,18 @@ func PostUsers(ctx *gin.Context) {
 		return
 	}
 
+	// Check if the username is already registered
+	db := database.Get()
+	existingUser, _ := db.Exists(query.NewQuery("users").Where(query.Field("Username").Eq(newUser.Username)))
+	if existingUser {
+		ctx.IndentedJSON(http.StatusUnprocessableEntity, gin.H{"message": "User already exists"})
+		return
+	}
+
 	// Create document for new user.
-	doc := document.NewDocument()
-	doc.Set("username", newUser.Username)
-	doc.Set("token", newUser.Token)
+	doc := document.NewDocumentOf(newUser)
 
 	// Add document to the users collection.
-	db := database.Get()
 	id, err := db.InsertOne("users", doc)
 	if err != nil {
 		ctx.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "User could not be added"})
@@ -100,7 +105,7 @@ func DeleteUserByUsername(ctx *gin.Context) {
 	db := database.Get()
 
 	// Remove user from the DB.
-	err := db.Delete(query.NewQuery("users").Where(query.Field("username").Eq(username)))
+	err := db.Delete(query.NewQuery("users").Where(query.Field("Username").Eq(username)))
 	if err != nil {
 		ctx.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "User could not be deleted"})
 		return
