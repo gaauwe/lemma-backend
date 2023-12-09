@@ -1,6 +1,7 @@
 package notification
 
 import (
+	"errors"
 	"log"
 
 	"github.com/gaauwe/lemma-backend/internal/config"
@@ -44,5 +45,26 @@ func SendNotification(title string, body string, image string, count int64) {
 		log.Println("Notification Sent: ", res.ApnsID)
 	} else {
 		log.Println("Notification Not Sent: ", res.StatusCode, res.ApnsID, res.Reason)
+	}
+}
+
+// This sends a silent notification to the device that tries to register, this way we can verify if it's a valid registration or a bad actor.
+func SendRegistrationNotification(token string) error {
+	payload := payload.NewPayload().ContentAvailable()
+
+	notification := &apns2.Notification{}
+	notification.DeviceToken = token
+	notification.Topic = config.Get().Device.Topic
+	notification.Payload = payload
+
+	res, err := Client.Push(notification)
+	if err != nil {
+		return err
+	}
+
+	if res.Sent() {
+		return nil
+	} else {
+		return errors.New("Failed to sent registration notification")
 	}
 }

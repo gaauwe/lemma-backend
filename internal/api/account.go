@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gaauwe/lemma-backend/internal/database"
+	"github.com/gaauwe/lemma-backend/internal/notification"
 	"github.com/gin-gonic/gin"
 	"github.com/ostafen/clover/v2/document"
 	"github.com/ostafen/clover/v2/query"
@@ -34,7 +35,14 @@ func PostUsers(ctx *gin.Context) {
 		return
 	}
 
-	// Check if the username is already registered
+	// Check if the device token is valid.
+	err := notification.SendRegistrationNotification(newUser.DeviceToken)
+	if err != nil {
+		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid device token"})
+		return
+	}
+
+	// Check if the username is already registered.
 	db := database.Get()
 	existingUser, _ := db.Exists(query.NewQuery("users").Where(query.Field("Username").Eq(newUser.Username)))
 	if existingUser {

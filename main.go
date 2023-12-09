@@ -51,9 +51,11 @@ func main() {
 
 	// Register API routes.
 	router := gin.Default()
+	router.POST("/users", api.PostUsers)
+
+	// TODO: Remove these API routes in production, or add authorization.
 	router.GET("/users", api.GetUsers)
 	router.GET("/users/:username", api.GetUserByUsername)
-	router.POST("/users", api.PostUsers)
 	router.DELETE("/users/:username", api.DeleteUserByUsername)
 
 	router.Run(config.Get().Server.Addr)

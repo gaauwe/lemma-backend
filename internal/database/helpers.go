@@ -12,10 +12,11 @@ type Inbox struct {
 }
 
 type User struct {
-	ID       string
-	Username string
-	Token    string
-	Inbox    Inbox
+	ID          string
+	Username    string
+	Token       string
+	DeviceToken string
+	Inbox       Inbox
 }
 
 func GetUserByUsername(username string) (*User, error) {
