@@ -25,7 +25,8 @@ type Config struct {
 	} `toml:"lemmy"`
 
 	Server struct {
-		PollRate  int64 `toml:"poll_rate"`
+		PollRate  int64  `toml:"poll_rate"`
+		Token     string `toml:"token"`
 		StartedAt time.Time
 	} `toml:"server"`
 }

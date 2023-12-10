@@ -51,18 +51,21 @@ func main() {
 
 	// Register API routes.
 	router := gin.Default()
-	router.POST("/users", api.PostUsers)
+	protected := router.Group("/api")
+	protected.Use(api.AuthMiddleware())
 
-	router.POST("/users/:username/watcher", api.AddWatcher)
-	router.PUT("/users/:username/watcher/:id", api.EditWatcher)
-	router.DELETE("/users/:username/watcher/:id", api.DeleteWatcher)
+	protected.POST("/users", api.PostUsers)
 
-	router.PUT("/users/:username/inbox", api.EditInbox)
+	protected.POST("/users/:username/watcher", api.AddWatcher)
+	protected.PUT("/users/:username/watcher/:id", api.EditWatcher)
+	protected.DELETE("/users/:username/watcher/:id", api.DeleteWatcher)
+
+	protected.PUT("/users/:username/inbox", api.EditInbox)
 
 	// TODO: Remove these API routes in production, or add authorization.
-	router.GET("/users", api.GetUsers)
-	router.GET("/users/:username", api.GetUserByUsername)
-	router.DELETE("/users/:username", api.DeleteUserByUsername)
+	protected.GET("/users", api.GetUsers)
+	protected.GET("/users/:username", api.GetUserByUsername)
+	protected.DELETE("/users/:username", api.DeleteUserByUsername)
 
 	router.Run()
 }
