@@ -67,6 +67,8 @@ jobs:
             docker run -d \
             --restart always \
             --volume=/root/lemma-backend:/app  \
-            -p 8080:8080 \
+            -p 443:443 \
+            -p 80:443 \
+            -p 8080:443 \
             --name $(echo $IMAGE_NAME) \
             $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7)
