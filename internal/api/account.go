@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gaauwe/lemma-backend/internal/database"
@@ -32,14 +33,14 @@ func GetUserByUsername(ctx *gin.Context) {
 }
 
 func PostUsers(ctx *gin.Context) {
-	var newUser database.User
-	if err := ctx.BindJSON(&newUser); err != nil {
-		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid body"})
+	var user database.User
+	if err := ctx.BindJSON(&user); err != nil {
+		handleValidationErrors(ctx, err)
 		return
 	}
 
-	// Check if the device token is valid.
-	err := notification.SendRegistrationNotification(newUser.DeviceToken)
+	// Check if the device token is valid, by sendig a silent notification.
+	err := notification.SendRegistrationNotification(user.DeviceToken)
 	if err != nil {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid device token"})
 		return
@@ -47,23 +48,32 @@ func PostUsers(ctx *gin.Context) {
 
 	// Check if the username is already registered.
 	db := database.Get()
-	existingUser, _ := db.Exists(query.NewQuery("users").Where(query.Field("Username").Eq(newUser.Username)))
+	existingUser, _ := db.Exists(query.NewQuery("users").Where(query.Field("Username").Eq(user.Username)))
 	if existingUser {
+		log.Println(err)
+
 		ctx.IndentedJSON(http.StatusUnprocessableEntity, gin.H{"message": "User already exists"})
 		return
 	}
 
+	// Add missing data if necessary.
+	if user.Inbox == nil {
+		user.Inbox = &database.Inbox{
+			Enabled: false,
+		}
+	}
+
 	// Create document for new user.
-	doc := document.NewDocumentOf(newUser)
+	doc := document.NewDocumentOf(user)
 
 	// Add document to the users collection.
 	_, err = db.InsertOne("users", doc)
 	if err != nil {
-		ctx.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "User could not be added"})
+		ctx.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
-	ctx.IndentedJSON(http.StatusCreated, newUser)
+	ctx.IndentedJSON(http.StatusCreated, user)
 }
 
 func DeleteUserByUsername(ctx *gin.Context) {
@@ -73,7 +83,7 @@ func DeleteUserByUsername(ctx *gin.Context) {
 	// Remove user from the DB.
 	err := db.Delete(query.NewQuery("users").Where(query.Field("Username").Eq(username)))
 	if err != nil {
-		ctx.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "User could not be deleted"})
+		ctx.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
@@ -82,12 +92,14 @@ func DeleteUserByUsername(ctx *gin.Context) {
 
 func EditInbox(ctx *gin.Context) {
 	username := ctx.Param("username")
+
 	var inbox database.Inbox
 	if err := ctx.BindJSON(&inbox); err != nil {
-		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid body"})
+		handleValidationErrors(ctx, err)
 		return
 	}
 
+	// Update notification settings in the DB.
 	err := database.UpdateUserInboxEnabled(username, inbox.Enabled)
 	if err != nil {
 		ctx.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
@@ -102,7 +114,7 @@ func AddWatcher(ctx *gin.Context) {
 
 	var watcher database.Watcher
 	if err := ctx.BindJSON(&watcher); err != nil {
-		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid body"})
+		handleValidationErrors(ctx, err)
 		return
 	}
 
@@ -122,7 +134,7 @@ func EditWatcher(ctx *gin.Context) {
 
 	var watcher database.Watcher
 	if err := ctx.BindJSON(&watcher); err != nil {
-		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid body"})
+		handleValidationErrors(ctx, err)
 		return
 	}
 
