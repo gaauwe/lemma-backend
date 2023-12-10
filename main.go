@@ -9,6 +9,7 @@ import (
 	"github.com/gaauwe/lemma-backend/internal/database"
 	"github.com/gaauwe/lemma-backend/internal/notification"
 	"github.com/gaauwe/lemma-backend/internal/user"
+	"github.com/gin-gonic/autotls"
 	"github.com/gin-gonic/gin"
 	"github.com/go-co-op/gocron"
 )
@@ -63,5 +64,9 @@ func main() {
 	protected.GET("/users/:username", api.GetUserByUsername)
 	protected.DELETE("/users/:username", api.DeleteUserByUsername)
 
-	router.Run()
+	if config.Get().Server.EnableSSL {
+		log.Fatal(autotls.Run(router, "gromdroid.nl"))
+	} else {
+		router.Run()
+	}
 }

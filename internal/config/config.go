@@ -17,6 +17,7 @@ type Config struct {
 	Server struct {
 		PollRate  int64  `toml:"poll_rate"`
 		Token     string `toml:"token"`
+		EnableSSL bool   `toml:"enable_ssl"`
 		StartedAt time.Time
 	} `toml:"server"`
 }
