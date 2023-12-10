@@ -64,5 +64,5 @@ func main() {
 	router.GET("/users/:username", api.GetUserByUsername)
 	router.DELETE("/users/:username", api.DeleteUserByUsername)
 
-	router.Run(config.Get().Server.Addr)
+	router.Run()
 }
