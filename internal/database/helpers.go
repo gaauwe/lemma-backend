@@ -20,10 +20,11 @@ type WatcherFilter struct {
 }
 
 type Watcher struct {
-	ID        string
-	Name      string
-	Community string
-	Filters   WatcherFilter
+	ID          string
+	Name        string
+	Community   string
+	Filters     WatcherFilter
+	LastChecked *time.Time
 }
 
 type User struct {
@@ -157,6 +158,12 @@ func DeleteWatcher(username string, id string) error {
 	return err
 }
 
+func UpdateWatcherLastChecked(username string, watcher Watcher) error {
+	t := time.Now()
+	watcher.LastChecked = &t
+	return EditWatcher(username, watcher)
+}
+
 func updateWatchers(username string, watchers []map[string]interface{}) error {
 	db := Get()
 	data := make(map[string]interface{})
@@ -173,6 +180,7 @@ func watcherToMap(watcher Watcher) map[string]interface{} {
 	result["Name"] = watcher.Name
 	result["Community"] = watcher.Community
 	result["Filters"] = watcherFilterToMap(watcher.Filters)
+	result["LastChecked"] = watcher.LastChecked
 
 	return result
 }

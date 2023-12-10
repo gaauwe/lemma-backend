@@ -14,8 +14,6 @@ import (
 )
 
 func FetchReplies(c *lemmy.Client, ctx context.Context, username string) {
-	log.Println("Fetching replies...")
-
 	user, err := c.UnreadCount(ctx, types.GetUnreadCount{
 		Auth: c.Token,
 	})
@@ -34,8 +32,6 @@ func FetchReplies(c *lemmy.Client, ctx context.Context, username string) {
 	var body string
 	var image string
 	count := user.Replies
-
-	log.Println("Total unread messages: ", count)
 
 	if count > 0 {
 		replies, err := c.Replies(ctx, types.GetReplies{
@@ -71,8 +67,6 @@ func shouldSkipEvent(time types.LemmyTime, username string) bool {
 	if err != nil {
 		return true
 	}
-
-	log.Println("Last Checked: ", user.Inbox.LastChecked)
 
 	// If we never checked this user before, we rely on the time that the server is started.
 	if user.Inbox.LastChecked == nil {

@@ -7,6 +7,7 @@ import (
 	"github.com/gaauwe/lemma-backend/internal/config"
 	"github.com/gaauwe/lemma-backend/internal/database"
 	"github.com/gaauwe/lemma-backend/internal/inbox"
+	"github.com/gaauwe/lemma-backend/internal/watcher"
 	"go.elara.ws/go-lemmy"
 )
 
@@ -27,6 +28,6 @@ func CheckNotifications() {
 		}
 
 		inbox.FetchReplies(c, ctx, user.Username)
-		// watcher.FetchPosts(c, ctx, user.Username)
+		watcher.FetchPosts(c, ctx, user.Username)
 	}
 }
