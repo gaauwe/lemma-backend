@@ -15,8 +15,8 @@ on:
         required: true
 #2
 env:
-  REGISTRY: "your-digitalocean-registry-container-url"
-  IMAGE_NAME: "your-docker-image-name"
+  REGISTRY: ${{ vars.REGISTRY }}
+  IMAGE_NAME: ${{ vars.IMAGE_NAME }}
 
 #3
 jobs:
@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v2
         
       - name: Build container image
-        run: docker build -t $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7) .
+        run: docker build -t $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7) -f docker/Dockerfile .
 
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
