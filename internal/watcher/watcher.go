@@ -15,7 +15,7 @@ import (
 	"go.elara.ws/go-lemmy/types"
 )
 
-func FetchPosts(c *lemmy.Client, ctx context.Context, user database.User) {
+func FetchPosts(c *lemmy.Client, ctx context.Context, user *database.User) {
 	for _, watcher := range user.Watchers {
 		posts, err := c.Posts(ctx, types.GetPosts{
 			Auth:          types.NewOptional(c.Token),

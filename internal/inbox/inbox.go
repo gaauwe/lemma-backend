@@ -13,7 +13,7 @@ import (
 	"go.elara.ws/go-lemmy/types"
 )
 
-func FetchReplies(c *lemmy.Client, ctx context.Context, user database.User) {
+func FetchReplies(c *lemmy.Client, ctx context.Context, user *database.User) {
 	unread, err := c.UnreadCount(ctx, types.GetUnreadCount{
 		Auth: c.Token,
 	})

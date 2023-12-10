@@ -12,7 +12,7 @@ import (
 )
 
 type Inbox struct {
-	Enabled     bool       `json:"enabled" binding:"required"`
+	Enabled     bool       `json:"enabled"`
 	LastChecked *time.Time `json:"lastChecked"`
 }
 
@@ -39,40 +39,40 @@ type User struct {
 	Watchers    map[string]Watcher `json:"watchers"`
 }
 
-func GetUserByUsername(username string) (User, error) {
-	db := Get()
-
-	// Fetch user from the DB.
-	doc, err := db.FindFirst(query.NewQuery("users").Where(query.Field("Username").Eq(username)))
-	if err != nil || doc == nil {
-		return User{}, errors.New("User could not be found")
-	}
-
-	// Map document to user struct.
-	user := User{}
-	doc.Unmarshal(user)
-
-	return user, nil
-}
-
-func GetUsers() ([]User, error) {
+func GetUsers() ([]*User, error) {
 	db := Get()
 
 	// Fetch all users from the DB.
 	docs, err := db.FindAll(query.NewQuery("users"))
 	if err != nil {
-		return []User{}, errors.New("Users could not be retrieved")
+		return []*User{}, errors.New("Users could not be retrieved")
 	}
 
 	// Map all the documents to a user struct.
-	users := []User{}
+	users := []*User{}
 	for _, doc := range docs {
-		user := User{}
+		user := &User{}
 		doc.Unmarshal(user)
 		users = append(users, user)
 	}
 
 	return users, nil
+}
+
+func GetUserByUsername(username string) (*User, error) {
+	db := Get()
+
+	// Fetch user from the DB.
+	doc, err := db.FindFirst(query.NewQuery("users").Where(query.Field("Username").Eq(username)))
+	if err != nil || doc == nil {
+		return &User{}, errors.New("User could not be found")
+	}
+
+	// Map document to user struct.
+	user := &User{}
+	doc.Unmarshal(user)
+
+	return user, nil
 }
 
 func UpdateUserInboxLastChecked(username string) error {
