@@ -2,6 +2,7 @@ package watcher
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -37,7 +38,7 @@ func FetchPosts(c *lemmy.Client, ctx context.Context, username string) {
 
 		if len(posts.Posts) > 0 && !shouldSkipEvent(posts.Posts[0].Post.Published, lastChecked) {
 			post := posts.Posts[0]
-			title = post.Community.Name
+			title = fmt.Sprintf("New post in %s", post.Community.Name)
 			body = post.Post.Name
 			image = post.Post.ThumbnailURL.String()
 		}
