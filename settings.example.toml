@@ -13,4 +13,4 @@ password = ""
 
 [server]
 poll_rate = 5
-addr = ""
+token = ""
