@@ -57,6 +57,8 @@ func main() {
 	router.PUT("/users/:username/watcher/:id", api.EditWatcher)
 	router.DELETE("/users/:username/watcher/:id", api.DeleteWatcher)
 
+	router.PUT("/users/:username/inbox", api.EditInbox)
+
 	// TODO: Remove these API routes in production, or add authorization.
 	router.GET("/users", api.GetUsers)
 	router.GET("/users/:username", api.GetUserByUsername)

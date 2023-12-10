@@ -50,16 +50,6 @@ func GetUserByUsername(username string) (*User, error) {
 	return user, nil
 }
 
-func UpdateUserInboxLastChecked(username string) error {
-	db := Get()
-
-	data := make(map[string]interface{})
-	data["Inbox.LastChecked"] = time.Now()
-
-	err := db.Update(query.NewQuery("users").Where(query.Field("Username").Eq(username)), data)
-	return err
-}
-
 func GetUsers() ([]*User, error) {
 	db := Get()
 
@@ -78,6 +68,29 @@ func GetUsers() ([]*User, error) {
 	}
 
 	return users, nil
+}
+
+func UpdateUserInboxLastChecked(username string) error {
+	db := Get()
+
+	data := make(map[string]interface{})
+	data["Inbox.LastChecked"] = time.Now()
+
+	err := db.Update(query.NewQuery("users").Where(query.Field("Username").Eq(username)), data)
+	return err
+}
+
+func UpdateUserInboxEnabled(username string, enabled bool) error {
+	_, err := GetUserByUsername(username)
+	if err != nil {
+		return err
+	}
+
+	data := make(map[string]interface{})
+	data["Inbox.Enabled"] = enabled
+
+	err = db.Update(query.NewQuery("users").Where(query.Field("Username").Eq(username)), data)
+	return err
 }
 
 func AddWatcher(username string, watcher Watcher) error {

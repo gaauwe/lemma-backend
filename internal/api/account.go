@@ -81,6 +81,23 @@ func DeleteUserByUsername(ctx *gin.Context) {
 	ctx.IndentedJSON(http.StatusOK, gin.H{"message": "User succesfully deleted"})
 }
 
+func EditInbox(ctx *gin.Context) {
+	username := ctx.Param("username")
+	var inbox database.Inbox
+	if err := ctx.BindJSON(&inbox); err != nil {
+		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid body"})
+		return
+	}
+
+	err := database.UpdateUserInboxEnabled(username, inbox.Enabled)
+	if err != nil {
+		ctx.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		return
+	}
+
+	ctx.IndentedJSON(http.StatusOK, gin.H{"message": "Inbox notitification settings updated succesfully"})
+}
+
 func AddWatcher(ctx *gin.Context) {
 	username := ctx.Param("username")
 	var newWatcher database.Watcher
