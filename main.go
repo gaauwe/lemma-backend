@@ -27,11 +27,6 @@ func main() {
 	}
 
 	// Setup the database.
-	err = database.SetupClientOld()
-	if err != nil {
-		log.Fatal("Failed to setup old database: ", err)
-	}
-
 	err = database.SetupClient()
 	if err != nil {
 		log.Fatal("Failed to setup database: ", err)
@@ -50,6 +45,7 @@ func main() {
 	}
 
 	// Register API routes.
+	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	protected := router.Group("/api")
 	protected.Use(api.AuthMiddleware())

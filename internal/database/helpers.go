@@ -2,8 +2,11 @@ package database
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/ostafen/clover/v2/document"
 	"github.com/ostafen/clover/v2/query"
 )
 
@@ -32,7 +35,7 @@ type User struct {
 	Token       string
 	DeviceToken string
 	Inbox       Inbox
-	Watchers    []Watcher
+	Watchers    map[string]Watcher
 }
 
 func GetUserByUsername(username string) (*User, error) {
@@ -94,104 +97,50 @@ func UpdateUserInboxEnabled(username string, enabled bool) error {
 	return err
 }
 
-func AddWatcher(username string, watcher Watcher) error {
-	user, err := GetUserByUsername(username)
-	if err != nil {
-		return err
-	}
+func AddWatcher(username string, watcher Watcher) (Watcher, error) {
+	// Generate UUID for the new watcher.
+	id := uuid.New()
+	key := fmt.Sprintf("Watchers.%s", id)
+	watcher.ID = id.String()
 
-	// Loop through all the current watchers to prepare the DB update.
-	watchers := []map[string]interface{}{}
-	for _, w := range user.Watchers {
-		// Prevent multiple watchers with the same name.
-		if watcher.Name == w.Name {
-			return errors.New("Watcher with that name already exists")
-		}
+	db := Get()
+	data := make(map[string]interface{})
+	data[key] = watcher
 
-		watchers = append(watchers, watcherToMap(w))
-	}
-
-	// Add new watcher to the list.
-	watchers = append(watchers, watcherToMap(watcher))
-
-	err = updateWatchers(username, watchers)
-	return err
+	err := db.Update(query.NewQuery("users").Where(query.Field("Username").Eq(username)), data)
+	return watcher, err
 }
 
-func EditWatcher(username string, watcher Watcher) error {
-	user, err := GetUserByUsername(username)
-	if err != nil {
-		return err
-	}
+func EditWatcher(username string, id string, watcher Watcher) (Watcher, error) {
+	key := fmt.Sprintf("Watchers.%s", id)
 
-	// Loop through all the current watchers to prepare the DB update.
-	watchers := []map[string]interface{}{}
-	for _, w := range user.Watchers {
-		// Replace the watcher that we want to edit.
-		if watcher.ID == w.ID {
-			watchers = append(watchers, watcherToMap(watcher))
-		} else {
-			watchers = append(watchers, watcherToMap(w))
-		}
-	}
+	db := Get()
+	data := make(map[string]interface{})
+	data[key] = watcher
 
-	err = updateWatchers(username, watchers)
-	return err
+	err := db.Update(query.NewQuery("users").Where(query.Field("Username").Eq(username)), data)
+	return watcher, err
 }
 
 func DeleteWatcher(username string, id string) error {
-	user, err := GetUserByUsername(username)
-	if err != nil {
-		return err
-	}
+	db := Get()
+	err := db.UpdateFunc(query.NewQuery("users").Where(query.Field("Username").Eq(username)), func(doc *document.Document) *document.Document {
+		watchers := doc.Get("Watchers")
 
-	// Loop through all the current watchers to prepare the DB update.
-	watchers := []map[string]interface{}{}
-	for _, w := range user.Watchers {
-		// Filter out the watcher that we want to delete.
-		if id != w.ID {
-			watchers = append(watchers, watcherToMap(w))
+		// Make sure that Watchers is a map.
+		if m, ok := watchers.(map[string]interface{}); ok {
+			// Remove the watcher from watchers and update the document with the new watchers.
+			delete(m, id)
+			doc.Set("Watchers", m)
 		}
-	}
 
-	err = updateWatchers(username, watchers)
+		return doc
+	})
 	return err
 }
 
-func UpdateWatcherLastChecked(username string, watcher Watcher) error {
+func UpdateWatcherLastChecked(username string, watcher Watcher) (Watcher, error) {
 	t := time.Now()
 	watcher.LastChecked = &t
-	return EditWatcher(username, watcher)
-}
-
-func updateWatchers(username string, watchers []map[string]interface{}) error {
-	db := Get()
-	data := make(map[string]interface{})
-	data["Watchers"] = watchers
-
-	err := db.Update(query.NewQuery("users").Where(query.Field("Username").Eq(username)), data)
-	return err
-}
-
-func watcherToMap(watcher Watcher) map[string]interface{} {
-	result := make(map[string]interface{})
-
-	result["ID"] = watcher.ID
-	result["Name"] = watcher.Name
-	result["Community"] = watcher.Community
-	result["Filters"] = watcherFilterToMap(watcher.Filters)
-	result["LastChecked"] = watcher.LastChecked
-
-	return result
-}
-
-func watcherFilterToMap(filter WatcherFilter) map[string]interface{} {
-	result := make(map[string]interface{})
-
-	result["Title"] = filter.Title
-	result["Author"] = filter.Author
-	result["Upvotes"] = filter.Upvotes
-	result["Link"] = filter.Link
-
-	return result
+	return EditWatcher(username, watcher.ID, watcher)
 }

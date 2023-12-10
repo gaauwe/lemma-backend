@@ -6,7 +6,6 @@ import (
 	"github.com/gaauwe/lemma-backend/internal/database"
 	"github.com/gaauwe/lemma-backend/internal/notification"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/ostafen/clover/v2/document"
 	"github.com/ostafen/clover/v2/query"
 )
@@ -100,47 +99,48 @@ func EditInbox(ctx *gin.Context) {
 
 func AddWatcher(ctx *gin.Context) {
 	username := ctx.Param("username")
-	var newWatcher database.Watcher
-	if err := ctx.BindJSON(&newWatcher); err != nil {
+
+	var watcher database.Watcher
+	if err := ctx.BindJSON(&watcher); err != nil {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid body"})
 		return
 	}
 
-	// Generate UUID for the new watcher, which can be used to delete the watcher later on.
-	id := uuid.New()
-	newWatcher.ID = id.String()
-
 	// Add watcher to the user in the DB.
-	err := database.AddWatcher(username, newWatcher)
+	result, err := database.AddWatcher(username, watcher)
 	if err != nil {
 		ctx.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return
 	}
 
-	ctx.IndentedJSON(http.StatusOK, newWatcher)
+	ctx.IndentedJSON(http.StatusOK, result)
 }
 
 func EditWatcher(ctx *gin.Context) {
 	username := ctx.Param("username")
-	var newWatcher database.Watcher
-	if err := ctx.BindJSON(&newWatcher); err != nil {
+	id := ctx.Param("id")
+
+	var watcher database.Watcher
+	if err := ctx.BindJSON(&watcher); err != nil {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid body"})
 		return
 	}
 
-	err := database.EditWatcher(username, newWatcher)
+	// Edit watcher in the DB.
+	result, err := database.EditWatcher(username, id, watcher)
 	if err != nil {
 		ctx.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return
 	}
 
-	ctx.IndentedJSON(http.StatusOK, gin.H{"message": "Watcher succesfully updated"})
+	ctx.IndentedJSON(http.StatusOK, result)
 }
 
 func DeleteWatcher(ctx *gin.Context) {
 	username := ctx.Param("username")
 	id := ctx.Param("id")
 
+	// Delete watcher in the DB.
 	err := database.DeleteWatcher(username, id)
 	if err != nil {
 		ctx.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
