@@ -13,8 +13,8 @@ import (
 	"go.elara.ws/go-lemmy/types"
 )
 
-func FetchReplies(c *lemmy.Client, ctx context.Context, username string) {
-	user, err := c.UnreadCount(ctx, types.GetUnreadCount{
+func FetchReplies(c *lemmy.Client, ctx context.Context, user database.User) {
+	unread, err := c.UnreadCount(ctx, types.GetUnreadCount{
 		Auth: c.Token,
 	})
 	if err != nil {
@@ -23,7 +23,7 @@ func FetchReplies(c *lemmy.Client, ctx context.Context, username string) {
 		// If the token is for some reason not valid, we delete the user and notify them of the issue.
 		// TODO: Update user in the database, so that we only send this once.
 		if strings.Contains(err.Error(), "not_logged_in") {
-			notification.SendNotification("Something went wrong with fetching your notifications", "Please disable and re-enable your notifications in the Lemma settings", "", 1)
+			notification.SendNotification("Something went wrong with fetching your notifications", "Please disable and re-enable your notifications in the Lemma settings", "", 1, user.DeviceToken)
 		}
 		return
 	}
@@ -31,7 +31,7 @@ func FetchReplies(c *lemmy.Client, ctx context.Context, username string) {
 	var title string
 	var body string
 	var image string
-	count := user.Replies
+	count := unread.Replies
 
 	if count > 0 {
 		replies, err := c.Replies(ctx, types.GetReplies{
@@ -45,7 +45,7 @@ func FetchReplies(c *lemmy.Client, ctx context.Context, username string) {
 		if len(replies.Replies) > 0 {
 			reply := replies.Replies[0]
 
-			if !shouldSkipEvent(reply.Comment.Published, username) {
+			if !shouldSkipEvent(reply.Comment.Published, user.Username) {
 				author := reply.Creator.Name
 				title = fmt.Sprintf("New reply from %s", author)
 				body = reply.Comment.Content
@@ -55,11 +55,11 @@ func FetchReplies(c *lemmy.Client, ctx context.Context, username string) {
 	}
 
 	if len(title) > 0 && len(body) > 0 {
-		notification.SendNotification(title, body, image, count)
+		notification.SendNotification(title, body, image, count, user.DeviceToken)
 	}
 
 	// Update the last checked of this user, so we never send notifications again for events that happened before this moment.
-	database.UpdateUserInboxLastChecked(username)
+	database.UpdateUserInboxLastChecked(user.Username)
 }
 
 func shouldSkipEvent(time types.LemmyTime, username string) bool {
@@ -68,8 +68,12 @@ func shouldSkipEvent(time types.LemmyTime, username string) bool {
 		return true
 	}
 
-	// If we never checked this user before, we rely on the time that the server is started.
-	if user.Inbox.LastChecked == nil {
+	/**
+	 * We rely on the time that the server was started in the following cases:
+	 * - We never checked this user before
+	 * - The server was restarted since the last time we checked this user
+	 */
+	if user.Inbox.LastChecked == nil || user.Inbox.LastChecked.Before(config.Get().Server.StartedAt) {
 		return config.Get().Server.StartedAt.After(time.Time)
 	}
 

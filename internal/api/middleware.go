@@ -10,19 +10,19 @@ import (
 
 // TODO: Not the best auth middleware, but good enough for testing.
 func AuthMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		token := extractToken(c)
+	return func(ctx *gin.Context) {
+		token := extractToken(ctx)
 		if token != config.Get().Server.Token {
-			c.String(http.StatusUnauthorized, "Unauthorized")
-			c.Abort()
+			ctx.String(http.StatusUnauthorized, "Unauthorized")
+			ctx.Abort()
 			return
 		}
-		c.Next()
+		ctx.Next()
 	}
 }
 
-func extractToken(c *gin.Context) string {
-	bearerToken := c.Request.Header.Get("Authorization")
+func extractToken(ctx *gin.Context) string {
+	bearerToken := ctx.Request.Header.Get("Authorization")
 	if len(strings.Split(bearerToken, " ")) == 2 {
 		return strings.Split(bearerToken, " ")[1]
 	}

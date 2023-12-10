@@ -11,18 +11,8 @@ type Config struct {
 	Apn struct {
 		KeyId  string `toml:"key_id"`
 		TeamId string `toml:"team_id"`
+		Topic  string `toml:"topic"`
 	} `toml:"apn"`
-
-	Device struct {
-		DeviceToken string `toml:"device_token"`
-		Topic       string `toml:"topic"`
-	} `toml:"device"`
-
-	Lemmy struct {
-		Server   string `toml:"server"`
-		Username string `toml:"username"`
-		Password string `toml:"password"`
-	} `toml:"lemmy"`
 
 	Server struct {
 		PollRate  int64  `toml:"poll_rate"`

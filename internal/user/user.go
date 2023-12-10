@@ -2,9 +2,10 @@ package user
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"strings"
 
-	"github.com/gaauwe/lemma-backend/internal/config"
 	"github.com/gaauwe/lemma-backend/internal/database"
 	"github.com/gaauwe/lemma-backend/internal/inbox"
 	"github.com/gaauwe/lemma-backend/internal/watcher"
@@ -18,8 +19,10 @@ func CheckNotifications() {
 	}
 
 	for _, user := range users {
+		server := fmt.Sprintf("https://%s", strings.Split(user.Username, "@")[1])
+
 		ctx := context.Background()
-		c, err := lemmy.New(config.Get().Lemmy.Server)
+		c, err := lemmy.New(server)
 		c.Token = user.Token
 
 		if err != nil {
@@ -27,7 +30,7 @@ func CheckNotifications() {
 			return
 		}
 
-		inbox.FetchReplies(c, ctx, user.Username)
-		watcher.FetchPosts(c, ctx, user.Username)
+		inbox.FetchReplies(c, ctx, user)
+		watcher.FetchPosts(c, ctx, user)
 	}
 }

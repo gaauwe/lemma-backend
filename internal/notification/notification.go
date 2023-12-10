@@ -28,12 +28,12 @@ func SetupClient() error {
 	return nil
 }
 
-func SendNotification(title string, body string, image string, count int64) {
+func SendNotification(title string, body string, image string, count int64, token string) {
 	payload := payload.NewPayload().AlertTitle(title).AlertBody(body).MutableContent().Badge(int(count)).Custom("image_url", image)
 
 	notification := &apns2.Notification{}
-	notification.DeviceToken = config.Get().Device.DeviceToken
-	notification.Topic = config.Get().Device.Topic
+	notification.DeviceToken = token
+	notification.Topic = config.Get().Apn.Topic
 	notification.Payload = payload
 
 	res, err := Client.Push(notification)
@@ -54,7 +54,7 @@ func SendRegistrationNotification(token string) error {
 
 	notification := &apns2.Notification{}
 	notification.DeviceToken = token
-	notification.Topic = config.Get().Device.Topic
+	notification.Topic = config.Get().Apn.Topic
 	notification.Payload = payload
 
 	res, err := Client.Push(notification)
