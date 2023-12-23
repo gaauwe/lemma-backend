@@ -4,12 +4,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/caddyserver/certmagic"
 	"github.com/gaauwe/lemma-backend/internal/api"
 	"github.com/gaauwe/lemma-backend/internal/config"
 	"github.com/gaauwe/lemma-backend/internal/database"
 	"github.com/gaauwe/lemma-backend/internal/notification"
 	"github.com/gaauwe/lemma-backend/internal/user"
-	"github.com/gin-gonic/autotls"
 	"github.com/gin-gonic/gin"
 	"github.com/go-co-op/gocron"
 )
@@ -66,7 +66,12 @@ func main() {
 	protected.DELETE("/users/:username", api.DeleteUserByUsername)
 
 	if config.Get().Server.EnableSSL {
-		log.Fatal(autotls.Run(router, "gromdroid.nl"))
+		certmagic.DefaultACME.Agreed = true
+		certmagic.DefaultACME.Email = config.Get().Server.Email
+		err = certmagic.HTTPS([]string{config.Get().Server.Domain}, router)
+		if err != nil {
+			log.Fatal(err)
+		}
 	} else {
 		router.Run()
 	}

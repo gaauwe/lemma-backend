@@ -17,6 +17,8 @@ import (
 
 func FetchPosts(c *lemmy.Client, ctx context.Context, user *database.User) {
 	for _, watcher := range user.Watchers {
+		log.Println("Checking community:", watcher.Community)
+
 		posts, err := c.Posts(ctx, types.GetPosts{
 			Auth:          types.NewOptional(c.Token),
 			CommunityName: types.NewOptional(watcher.Community),

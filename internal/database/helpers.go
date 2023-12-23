@@ -3,7 +3,6 @@ package database
 import (
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -135,7 +134,6 @@ func EditWatcher(username string, id string, watcher Watcher) (Watcher, error) {
 
 	// Check if watcher exists.
 	exists, err := db.Exists(query.NewQuery("users").Where(query.Field(key).Exists()))
-	log.Println(exists)
 	if err != nil {
 		return Watcher{}, err
 	}
@@ -157,7 +155,6 @@ func DeleteWatcher(username string, id string) error {
 
 	// Check if watcher exists.
 	exists, err := db.Exists(query.NewQuery("users").Where(query.Field(key).Exists()))
-	log.Println(exists)
 	if err != nil {
 		return err
 	}

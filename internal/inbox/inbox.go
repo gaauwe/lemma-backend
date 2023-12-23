@@ -33,6 +33,7 @@ func FetchReplies(c *lemmy.Client, ctx context.Context, user *database.User) {
 	var image string
 	count := unread.Replies
 
+	log.Println("Unread notifications:", count)
 	if count > 0 {
 		replies, err := c.Replies(ctx, types.GetReplies{
 			Auth:       c.Token,

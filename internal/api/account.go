@@ -1,7 +1,6 @@
 package api
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gaauwe/lemma-backend/internal/database"
@@ -50,8 +49,6 @@ func PostUsers(ctx *gin.Context) {
 	db := database.Get()
 	existingUser, _ := db.Exists(query.NewQuery("users").Where(query.Field("Username").Eq(user.Username)))
 	if existingUser {
-		log.Println(err)
-
 		ctx.IndentedJSON(http.StatusUnprocessableEntity, gin.H{"message": "User already exists"})
 		return
 	}
