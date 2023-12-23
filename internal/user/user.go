@@ -8,8 +8,8 @@ import (
 
 	"github.com/gaauwe/lemma-backend/internal/database"
 	"github.com/gaauwe/lemma-backend/internal/inbox"
+	"github.com/gaauwe/lemma-backend/internal/lemmy"
 	"github.com/gaauwe/lemma-backend/internal/watcher"
-	"go.elara.ws/go-lemmy"
 )
 
 func CheckNotifications() {

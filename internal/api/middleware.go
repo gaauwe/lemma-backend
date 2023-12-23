@@ -7,9 +7,9 @@ import (
 
 	"github.com/gaauwe/lemma-backend/internal/config"
 	"github.com/gaauwe/lemma-backend/internal/database"
+	"github.com/gaauwe/lemma-backend/internal/lemmy"
+	"github.com/gaauwe/lemma-backend/internal/lemmy/types"
 	"github.com/gin-gonic/gin"
-	"go.elara.ws/go-lemmy"
-	"go.elara.ws/go-lemmy/types"
 )
 
 // TODO: Not the best auth middleware, but good enough for testing.

@@ -10,9 +10,9 @@ import (
 
 	"github.com/gaauwe/lemma-backend/internal/config"
 	"github.com/gaauwe/lemma-backend/internal/database"
+	"github.com/gaauwe/lemma-backend/internal/lemmy"
+	"github.com/gaauwe/lemma-backend/internal/lemmy/types"
 	"github.com/gaauwe/lemma-backend/internal/notification"
-	"go.elara.ws/go-lemmy"
-	"go.elara.ws/go-lemmy/types"
 )
 
 func FetchPosts(c *lemmy.Client, ctx context.Context, user *database.User) {
@@ -32,16 +32,18 @@ func FetchPosts(c *lemmy.Client, ctx context.Context, user *database.User) {
 		var body string
 		var image string
 		var count int64
+		var url string
 
 		if len(posts.Posts) > 0 && !shouldSkipEvent(posts.Posts[0], watcher) {
 			post := posts.Posts[0]
 			title = fmt.Sprintf("New post in %s", post.Community.Name)
 			body = post.Post.Name
 			image = post.Post.ThumbnailURL.String()
+			url = fmt.Sprintf("/post/%d", post.Post.ID)
 		}
 
 		if len(title) > 0 && len(body) > 0 {
-			notification.SendNotification(title, body, image, count, user.DeviceToken)
+			notification.SendNotification(title, body, image, count, url, user)
 		}
 
 		// Update the last checked of this user, so we never send notifications again for events that happened before this moment.

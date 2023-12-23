@@ -8,9 +8,9 @@ import (
 
 	"github.com/gaauwe/lemma-backend/internal/config"
 	"github.com/gaauwe/lemma-backend/internal/database"
+	"github.com/gaauwe/lemma-backend/internal/lemmy"
+	"github.com/gaauwe/lemma-backend/internal/lemmy/types"
 	"github.com/gaauwe/lemma-backend/internal/notification"
-	"go.elara.ws/go-lemmy"
-	"go.elara.ws/go-lemmy/types"
 )
 
 func FetchReplies(c *lemmy.Client, ctx context.Context, user *database.User) {
@@ -23,7 +23,7 @@ func FetchReplies(c *lemmy.Client, ctx context.Context, user *database.User) {
 		// If the token is for some reason not valid, we delete the user and notify them of the issue.
 		// TODO: Update user in the database, so that we only send this once.
 		if strings.Contains(err.Error(), "not_logged_in") {
-			notification.SendNotification("Something went wrong with fetching your notifications", "Please disable and re-enable your notifications in the Lemma settings", "", 1, user.DeviceToken)
+			notification.SendNotification("Something went wrong with fetching your notifications", "Please disable and re-enable your notifications in the Lemma settings", "", 1, "/TODO", user)
 		}
 		return
 	}
@@ -31,6 +31,7 @@ func FetchReplies(c *lemmy.Client, ctx context.Context, user *database.User) {
 	var title string
 	var body string
 	var image string
+	var url string
 	count := unread.Replies
 
 	log.Println("Unread notifications:", count)
@@ -51,12 +52,13 @@ func FetchReplies(c *lemmy.Client, ctx context.Context, user *database.User) {
 				title = fmt.Sprintf("New reply from %s", author)
 				body = reply.Comment.Content
 				image = reply.Creator.Avatar.String()
+				url = fmt.Sprintf("/post/%d?commentPath=%d", reply.Post.ID, reply.Comment.ID)
 			}
 		}
 	}
 
 	if len(title) > 0 && len(body) > 0 {
-		notification.SendNotification(title, body, image, count, user.DeviceToken)
+		notification.SendNotification(title, body, image, count, url, user)
 	}
 
 	// Update the last checked of this user, so we never send notifications again for events that happened before this moment.
