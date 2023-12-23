@@ -31,6 +31,10 @@ type Watcher struct {
 	LastChecked *time.Time    `json:"lastChecked"`
 }
 
+type DeviceToken struct {
+	DeviceToken string `json:"deviceToken" binding:"required"`
+}
+
 type User struct {
 	Username    string             `json:"username" binding:"required"`
 	Token       string             `json:"token" binding:"required"`
@@ -93,6 +97,19 @@ func UpdateUserInboxEnabled(username string, enabled bool) error {
 
 	data := make(map[string]interface{})
 	data["Inbox.Enabled"] = enabled
+
+	err = db.Update(query.NewQuery("users").Where(query.Field("Username").Eq(username)), data)
+	return err
+}
+
+func UpdateUseDeviceToken(username string, token string) error {
+	_, err := GetUserByUsername(username)
+	if err != nil {
+		return err
+	}
+
+	data := make(map[string]interface{})
+	data["DeviceToken"] = token
 
 	err = db.Update(query.NewQuery("users").Where(query.Field("Username").Eq(username)), data)
 	return err

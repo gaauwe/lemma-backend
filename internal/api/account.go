@@ -109,6 +109,25 @@ func EditInbox(ctx *gin.Context) {
 	ctx.IndentedJSON(http.StatusOK, gin.H{"message": "Inbox notitification settings updated succesfully"})
 }
 
+func EditDeviceToken(ctx *gin.Context) {
+	username := ctx.Param("username")
+
+	var deviceToken database.DeviceToken
+	if err := ctx.BindJSON(&deviceToken); err != nil {
+		handleValidationErrors(ctx, err)
+		return
+	}
+
+	// Update notification settings in the DB.
+	err := database.UpdateUseDeviceToken(username, deviceToken.DeviceToken)
+	if err != nil {
+		ctx.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		return
+	}
+
+	ctx.IndentedJSON(http.StatusOK, gin.H{"message": "Device token updated succesfully"})
+}
+
 func AddWatcher(ctx *gin.Context) {
 	username := ctx.Param("username")
 

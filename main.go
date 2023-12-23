@@ -58,6 +58,7 @@ func main() {
 	protected.DELETE("/users/:username/watcher/:id", api.DeleteWatcher)
 
 	protected.PUT("/users/:username/inbox", api.EditInbox)
+	protected.PUT("/users/:username/token", api.EditDeviceToken)
 
 	// TODO: Remove these API routes in production, or add authorization.
 	protected.GET("/users", api.GetUsers)
