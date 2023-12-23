@@ -48,22 +48,28 @@ func main() {
 	// Register API routes.
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
-	protected := router.Group("/api")
-	protected.Use(api.AuthMiddleware())
 
-	protected.POST("/users", api.PostUsers)
+	// User routes.
+	protectedUser := router.Group("/api/users/:username")
+	protectedUser.Use(api.UserAuthMiddleware())
 
-	protected.POST("/users/:username/watcher", api.AddWatcher)
-	protected.PUT("/users/:username/watcher/:id", api.EditWatcher)
-	protected.DELETE("/users/:username/watcher/:id", api.DeleteWatcher)
+	protectedUser.POST("/watcher", api.AddWatcher)
+	protectedUser.PUT("/watcher/:id", api.EditWatcher)
+	protectedUser.DELETE("/watcher/:id", api.DeleteWatcher)
 
-	protected.PUT("/users/:username/inbox", api.EditInbox)
-	protected.PUT("/users/:username/token", api.EditDeviceToken)
+	protectedUser.PUT("/inbox", api.EditInbox)
+	protectedUser.PUT("/token", api.EditDeviceToken)
+
+	// Admin routes.
+	protectedAdmin := router.Group("/api")
+	protectedAdmin.Use(api.AdminAuthMiddleware())
+
+	protectedAdmin.POST("/users", api.PostUsers)
 
 	// TODO: Remove these API routes in production, or add authorization.
-	protected.GET("/users", api.GetUsers)
-	protected.GET("/users/:username", api.GetUserByUsername)
-	protected.DELETE("/users/:username", api.DeleteUserByUsername)
+	protectedAdmin.GET("/users", api.GetUsers)
+	protectedAdmin.GET("/users/:username", api.GetUserByUsername)
+	protectedAdmin.DELETE("/users/:username", api.DeleteUserByUsername)
 
 	if config.Get().Server.EnableSSL {
 		certmagic.DefaultACME.Agreed = true

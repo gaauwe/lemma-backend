@@ -1,15 +1,19 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/gaauwe/lemma-backend/internal/config"
+	"github.com/gaauwe/lemma-backend/internal/database"
 	"github.com/gin-gonic/gin"
+	"go.elara.ws/go-lemmy"
+	"go.elara.ws/go-lemmy/types"
 )
 
 // TODO: Not the best auth middleware, but good enough for testing.
-func AuthMiddleware() gin.HandlerFunc {
+func AdminAuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		token := extractToken(ctx)
 		if token != config.Get().Server.Token {
@@ -17,6 +21,35 @@ func AuthMiddleware() gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
+		ctx.Next()
+	}
+}
+
+func UserAuthMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		username := ctx.Param("username")
+		token := extractToken(ctx)
+		user, err := database.GetUserByUsername(username)
+
+		// Check if user exists.
+		if err != nil {
+			ctx.String(http.StatusUnauthorized, "Unauthorized")
+			ctx.Abort()
+			return
+		}
+
+		// Check if token is valid for user.
+		server := fmt.Sprintf("https://%s", strings.Split(user.Username, "@")[1])
+		c, err := lemmy.New(server)
+		c.Token = token
+		site, err := c.Site(ctx, types.GetSite{Auth: types.NewOptional(c.Token)})
+
+		if err != nil || !site.MyUser.IsValid() {
+			ctx.String(http.StatusUnauthorized, "Unauthorized")
+			ctx.Abort()
+			return
+		}
+
 		ctx.Next()
 	}
 }
