@@ -32,6 +32,7 @@ func FetchReplies(c *lemmy.Client, ctx context.Context, user *database.User) {
 	var body string
 	var image string
 	var url string
+	var commentReplyId int64
 	count := unread.Replies
 
 	log.Println("Unread notifications:", count)
@@ -53,11 +54,16 @@ func FetchReplies(c *lemmy.Client, ctx context.Context, user *database.User) {
 				body = reply.Comment.Content
 				image = reply.Creator.Avatar.String()
 				url = fmt.Sprintf("/post/%d?commentPath=%d", reply.Post.ID, reply.Comment.ID)
+				commentReplyId = reply.CommentReply.ID
 			}
 		}
 	}
 
 	if len(title) > 0 && len(body) > 0 {
+		data := make(map[string]interface{})
+		data["commentReplyId"] = commentReplyId
+
+		log.Println(title)
 		notification.SendNotification(title, body, image, count, url, user)
 	}
 

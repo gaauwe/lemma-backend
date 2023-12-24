@@ -43,6 +43,7 @@ func FetchPosts(c *lemmy.Client, ctx context.Context, user *database.User) {
 		}
 
 		if len(title) > 0 && len(body) > 0 {
+			log.Println(title)
 			notification.SendNotification(title, body, image, count, url, user)
 		}
 
