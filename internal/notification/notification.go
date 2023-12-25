@@ -40,7 +40,7 @@ func SendNotification(title string, body string, image string, count int64, url 
 	data["username"] = user.Username
 
 	// Generate notification payload.
-	payload := payload.NewPayload().AlertTitle(title).AlertBody(body).MutableContent().Custom("image_url", image).Custom("body", data)
+	payload := payload.NewPayload().AlertTitle(title).AlertBody(body).Sound("default").MutableContent().Custom("image_url", image).Custom("body", data)
 
 	if count > 0 {
 		payload.Badge(int(count))
